@@ -144,7 +144,7 @@ class NAT(app_manager.RyuApp):
 	
 
 	bitmask = "24"
-	src_match = IPNetwork("192.168.0.1"+ "/" + bitmask)
+	src_match = IPNetwork("192.168.0.0"+ "/" + bitmask)
 	dst_match = ex_ip
 
 	if message.in_port == ofproto.OFPP_LOCAL :
