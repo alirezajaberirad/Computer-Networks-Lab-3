@@ -60,7 +60,7 @@ from ryu.controller import dpset
 from netaddr import *
 from collections import namedtuple
 
-class NAT(app_manager.RyuApp):
+class NAT_controller_Alireza_JaberiRad(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
     global Ipv4_addr 
     Ipv4_addr = namedtuple("Ipv4_addr", ["addr", "port"])    
