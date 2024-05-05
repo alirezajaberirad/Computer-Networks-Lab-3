@@ -133,11 +133,11 @@ class NAT_controller_Alireza_JaberiRad(app_manager.RyuApp):
 
 	message = ev.msg
 	#self.logger.info("message %s", message)
-        datapath = message.datapath
-        ofproto = datapath.ofproto
+	datapath = message.datapath
+	ofproto = datapath.ofproto
 	parser = datapath.ofproto_parser
 
-        pkt = packet.Packet(message.data)
+	pkt = packet.Packet(message.data)
 	#self.logger.info("pkt %s", pkt)
 	ip = pkt.get_protocol(ipv4.ipv4)
         #self.logger.info("ipv4 %s", ip)
@@ -156,31 +156,31 @@ class NAT_controller_Alireza_JaberiRad(app_manager.RyuApp):
 	if ip.proto == 17 or ip.proto == 6 :
 		t = pkt.get_protocol(tcp.tcp)
         	#self.logger.info("tcp %s", t)
-        	u = pkt.get_protocol(udp.udp)
-        	#self.logger.info("udp %s", u)
+		u = pkt.get_protocol(udp.udp)
+		#self.logger.info("udp %s", u)
 
-		    #Route TCP and UDP packets from client here
-		    
-			out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
-        		datapath.send_msg(out)
-			return
-		elif ip.dst  == dst_match :
-			#print "convert dst"
-                        dst_port = t.dst_port if t else u.dst_port
-                        #print dst_port
-			
-			 #Route TCP and UDP packets that return from server here
-                        
-			out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
-                        datapath.send_msg(out)
-                        return
+		#Route TCP and UDP packets from client here
+		
+		out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
+		datapath.send_msg(out)
+		return
+	elif ip.dst  == dst_match :
+		#print "convert dst"
+		dst_port = t.dst_port if t else u.dst_port
+		#print dst_port
+		
+			#Route TCP and UDP packets that return from server here
+					
+		out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
+		datapath.send_msg(out)
+		return
 
 	
 	else:
 		#print "other"
 		actions = [parser.OFPActionOutput(out_port)]
-                out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
-                datapath.send_msg(out)		
+		out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
+		datapath.send_msg(out)		
 
     def ipv4_to_str(self, integre):
 	ip_list = [str((integre >> (24 - (n * 8)) & 255)) for n in range(4)]
