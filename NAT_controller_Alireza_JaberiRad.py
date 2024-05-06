@@ -66,13 +66,13 @@ class NAT_controller_Alireza_JaberiRad(app_manager.RyuApp):
     Ipv4_addr = namedtuple("Ipv4_addr", ["addr", "port"])    
 
     def __init__(self, *args, **kwargs):
-        super(NAT, self).__init__(*args, **kwargs)
-		global ex_ip
-		ex_ip = "128.128.129.1"
-		global maps
-		maps = {}
-		global ports
-		ports = range(50000,60000)
+        super(NAT_controller_Alireza_JaberiRad, self).__init__(*args, **kwargs)
+	global ex_ip
+	ex_ip = "128.128.129.1"
+	global maps
+	maps = {}
+	global ports
+	ports = range(50000,60000)
 	def add_flow(self, datapath, match, actions, priority=0, hard_timeout=0):
 		ofproto = datapath.ofproto
 		parser = datapath.ofproto_parser
