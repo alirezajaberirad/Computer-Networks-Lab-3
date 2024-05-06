@@ -60,26 +60,27 @@ from ryu.controller import dpset
 from netaddr import *
 from collections import namedtuple
 
-class NAT_controller_Alireza_JaberiRad(app_manager.RyuApp):
+class NAT(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
     global Ipv4_addr 
     Ipv4_addr = namedtuple("Ipv4_addr", ["addr", "port"])    
 
     def __init__(self, *args, **kwargs):
-        super(NAT_controller_Alireza_JaberiRad, self).__init__(*args, **kwargs)
-	global ex_ip
-	ex_ip = "128.128.129.1"
-	global maps
-	maps = {}
-	global ports
-	ports = range(50000,60000)
+        super(NAT, self).__init__(*args, **kwargs)
+		global ex_ip
+		ex_ip = "128.128.129.1"
+		global maps
+		maps = {}
+		global ports
+		ports = range(50000,60000)
+	
 	def add_flow(self, datapath, match, actions, priority=0, hard_timeout=0):
 		ofproto = datapath.ofproto
 		parser = datapath.ofproto_parser
 
-	mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, actions=actions, hard_timeout=hard_timeout, cookie=0, command=ofproto.OFPFC_ADD)
-	datapath.send_msg(mod)
-	#self.logger.debug("add_flow:"+str(mod))
+		mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, actions=actions, hard_timeout=hard_timeout, cookie=0, command=ofproto.OFPFC_ADD)
+		datapath.send_msg(mod)
+		#self.logger.debug("add_flow:"+str(mod))
 
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def _event_switch_enter_handler(self, ev):
