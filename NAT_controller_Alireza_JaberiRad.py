@@ -140,7 +140,7 @@ class NAT(app_manager.RyuApp):
 		pkt = packet.Packet(message.data)
 		#self.logger.info("pkt %s", pkt)
 		ip = pkt.get_protocol(ipv4.ipv4)
-			#self.logger.info("ipv4 %s", ip)
+		#self.logger.info("ipv4 %s", ip)
 
 
 		bitmask = "24"
@@ -160,7 +160,21 @@ class NAT(app_manager.RyuApp):
 			#self.logger.info("udp %s", u)
 
 			#Route TCP and UDP packets from client here
-			
+			if IPNetwork(ip.src + "/" + bitmask) == src_match:
+				if t :
+					src_port = t.src_port
+				else:
+					src_port = u.src_port
+				ip_addr = Ipv4_addr(addr = ip.src, port = src_port)
+
+				if ip_addr in maps:
+					port = maps[ip_addr]
+				else:
+					port = ports.pop()
+					maps[ip_addr] = port
+					maps[port] = ip_addr
+				actions = [parser.OFPActionSetNwSrc(self.ipv4_to_int(ex_ip)), parser.OFPActionSetTpSrc(port), parser.OFPActionOutput(out_port)]
+
 			out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
 			datapath.send_msg(out)
 			return
@@ -169,8 +183,14 @@ class NAT(app_manager.RyuApp):
 			dst_port = t.dst_port if t else u.dst_port
 			#print dst_port
 			
-				#Route TCP and UDP packets that return from server here
-						
+			#Route TCP and UDP packets that return from server here
+			if dst_port in maps:
+				ip_addr = maps[dst_port]
+			else:
+				return
+
+			actions = [parser.OFPActionSetNwDst(self.ipv4_to_int(ip_addr.addr)), parser.OFPActionSetTpDst(ip_addr.port), parser.OFPActionOutput(out_port)]
+
 			out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
 			datapath.send_msg(out)
 			return
