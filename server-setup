@@ -1,1 +1,1 @@
-ip route add 192.168.0.1/24 via 128.128.128.1 dev OVS1
+ip route add 192.168.0.0/24 via 128.128.128.1 dev OVS1
