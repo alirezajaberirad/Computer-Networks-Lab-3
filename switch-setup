@@ -6,7 +6,6 @@ env
 
 #Miniet creates a bridge by default using the switch name.
 #So we delete and re-create our own bridges in the next step   
-ovs-vsctl del-br s3
 ovs-vsctl del-br OVS1
 ovs-vsctl del-br OVS2
 
