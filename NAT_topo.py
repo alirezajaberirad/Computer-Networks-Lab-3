@@ -20,8 +20,8 @@ class MyTopo( Topo ):
         Topo.__init__( self )
 
         # Add hosts and switches
-        client = self.addHost('client', ip='192.168.0.2/24' )
-        server = self.addHost('server', ip='128.128.128.2/24' )
+        client = self.addHost('h1', ip='192.168.0.2/24' )
+        server = self.addHost('h2', ip='128.128.128.2/24' )
         Switch = self.addSwitch( 's3' )
         
 
