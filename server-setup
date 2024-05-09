@@ -1,1 +1,1 @@
-ip route add 192.168.0.0/24 via 128.128.128.1 dev server
+ip route add 192.168.0.0/24 via 128.128.128.1 dev h2-eth0
