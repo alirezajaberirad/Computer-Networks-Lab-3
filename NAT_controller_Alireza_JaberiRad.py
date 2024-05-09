@@ -72,7 +72,7 @@ class NAT(app_manager.RyuApp):
 		global maps
 		maps = {}
 		global ports
-		ports = range(50000,60000)
+		ports = list(range(50000,60000))
 		
 	def add_flow(self, datapath, match, actions, priority=0, hard_timeout=0):
 		ofproto = datapath.ofproto
