@@ -176,25 +176,25 @@ class NAT(app_manager.RyuApp):
 					maps[port] = ip_addr
 				actions = [parser.OFPActionSetNwSrc(self.ipv4_to_int(ex_ip)), parser.OFPActionSetTpSrc(port), parser.OFPActionOutput(out_port)]
 
-			out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
-			datapath.send_msg(out)
-			return
-		elif ip.dst  == dst_match :
-			#print "convert dst"
-			dst_port = t.dst_port if t else u.dst_port
-			#print dst_port
-			
-			#Route TCP and UDP packets that return from server here
-			if dst_port in maps:
-				ip_addr = maps[dst_port]
-			else:
+				out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
+				datapath.send_msg(out)
 				return
+			elif ip.dst  == dst_match :
+				#print "convert dst"
+				dst_port = t.dst_port if t else u.dst_port
+				#print dst_port
+				
+				#Route TCP and UDP packets that return from server here
+				if dst_port in maps:
+					ip_addr = maps[dst_port]
+				else:
+					return
 
-			actions = [parser.OFPActionSetNwDst(self.ipv4_to_int(ip_addr.addr)), parser.OFPActionSetTpDst(ip_addr.port), parser.OFPActionOutput(out_port)]
+				actions = [parser.OFPActionSetNwDst(self.ipv4_to_int(ip_addr.addr)), parser.OFPActionSetTpDst(ip_addr.port), parser.OFPActionOutput(out_port)]
 
-			out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
-			datapath.send_msg(out)
-			return
+				out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
+				datapath.send_msg(out)
+				return
 
 
 		else:
