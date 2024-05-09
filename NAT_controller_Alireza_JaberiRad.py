@@ -61,6 +61,9 @@ from netaddr import *
 from collections import namedtuple
 
 class NAT(app_manager.RyuApp):
+    # Initialize NAT mapping tables
+    self.nat_table = {}  # Maps internal IP:Port to external IP:Port
+    self.reverse_nat_table = {}  # Maps external IP:Port to internal IP:Port
 	OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 	global Ipv4_addr 
 	Ipv4_addr = namedtuple("Ipv4_addr", ["addr", "port"])    
@@ -138,6 +141,7 @@ class NAT(app_manager.RyuApp):
 		ofproto = datapath.ofproto
 		parser = datapath.ofproto_parser
 
+        self.logger.info("Processing packet from IP: %s, Port: %s", ip_src, port_src)
 		pkt = packet.Packet(message.data)
 		#self.logger.info("pkt %s", pkt)
 		ip = pkt.get_protocol(ipv4.ipv4)
@@ -178,6 +182,9 @@ class NAT(app_manager.RyuApp):
 
 				out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
 				datapath.send_msg(out)
+        # Install flow rule to handle future packets in this flow
+        self.install_flow(datapath, priority=100, match=match, actions=actions, timeout=3600)
+        self.logger.info("Flow rule installed for IP: %s", ip_src)
 				return
 			elif ip.dst  == dst_match :
 				#print "convert dst"
