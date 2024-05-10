@@ -184,7 +184,7 @@ class NAT(app_manager.RyuApp):
                     print("the flow does not exist!")
 
                 #Route TCP and UDP packets that return from server here
-                actions = [parser.OFPActionSetTpSrc(maps[dst_src].port) ,parser.OFPActionSetNwSrc(maps[dst_src].addr), parser.OFPActionOutput(out_port)]
+                actions = [parser.OFPActionSetTpDst(maps[dst_src].port) ,parser.OFPActionSetNwDst(maps[dst_src].addr), parser.OFPActionOutput(out_port)]
                 out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
                 datapath.send_msg(out)
                 return
