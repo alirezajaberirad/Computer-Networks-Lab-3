@@ -7,7 +7,7 @@
 # Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in complianchttp://www.apache.org/licenses/LICENSE-2.0e with the License.
+# you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #    http://www.apache.org/licenses/LICENSE-2.0
@@ -68,7 +68,7 @@ class NAT(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(NAT, self).__init__(*args, **kwargs)
         global ex_ip
-        ex_ip = "128.128.129.1"
+        ex_ip = "128.128.128.1"
         global maps
         maps = {}
         global ports
@@ -90,15 +90,15 @@ class NAT(app_manager.RyuApp):
         ofproto = dp.ofproto
         parser = dp.ofproto_parser
         self.logger.info("switch connected %s", dp)
-    
+
         # pass packet directly
-        actions = [parser.OFPActionOutput(ofproto.OFPP_NORMAL)]    
+        actions = [parser.OFPActionOutput(ofproto.OFPP_NORMAL)]	
 
         # arp
         match = parser.OFPMatch(dl_type = dl_type_arp)
 
         self.add_flow(dp, match, actions)
-    
+
         # ipv6
         match = parser.OFPMatch(dl_type = dl_type_ipv6)
 
@@ -141,65 +141,60 @@ class NAT(app_manager.RyuApp):
         #self.logger.info("pkt %s", pkt)
         ip = pkt.get_protocol(ipv4.ipv4)
         #self.logger.info("ipv4 %s", ip)
-        
+
+
         bitmask = "24"
         src_match = IPNetwork("192.168.0.0"+ "/" + bitmask)
         dst_match = ex_ip
 
-        if message.in_port == ofproto.OFPP_LOCAL:
+        if message.in_port == ofproto.OFPP_LOCAL :
             out_port = 1
-        else:
+        else :
             out_port = ofproto.OFPP_LOCAL
-        
-        if ip.proto == 17 or ip.proto == 6:
+
+
+        if ip.proto == 17 or ip.proto == 6 :
             t = pkt.get_protocol(tcp.tcp)
             #self.logger.info("tcp %s", t)
             u = pkt.get_protocol(udp.udp)
             #self.logger.info("udp %s", u)
-            
-            #########################################
-            #Route TCP and UDP packets from client here
-            if IPNetwork( ip.src + "/" + bitmask ) == src_match:
-                src_port = t.src_port if t else u.src_port
-                ip_addr = Ipv4_addr(addr=ip.src , port=src_port)
 
-                # Map Client Source Address and Port to External IP and Port
-                if ip_addr in maps:
-                    port = maps[ip_addr]
-
+                 #Route TCP and UDP packets from client here
+            if ip.dst != dst_match:
+                src_addr = Ipv4_addr(addr=ip.src, port=t.src_port) if t else Ipv4_addr(addr=ip.src, port=u.src_port)
+                if src_addr in maps:
+                    addr = maps[src_addr]
                 else:
                     port = ports.pop()
-                    maps[ip_addr] = port
-                    maps[port] = ip_addr
+                    maps[src_addr] = Ipv4_addr(addr=ex_ip, port=port)
+                    maps[Ipv4_addr(addr=ex_ip, port=port)]=src_addr
 
-                actions =[parser.OFPActionSetNwSrc(self.ipv4_to_int(ex_ip)), parser.OFPActionSetTpSrc(port), parser.OFPActionOutput(out_port)]
-            ########################################
-                out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port, actions=actions)
+                actions = [parser.OFPActionSetTpSrc(maps[src_addr].port) ,parser.OFPActionSetNwSrc(maps[src_addr].addr), parser.OFPActionOutput(out_port)]
+                out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
                 datapath.send_msg(out)
                 return
-            elif ip.dst  == dst_match:
+            elif ip.dst  == dst_match :
                 #print "convert dst"
                 dst_port = t.dst_port if t else u.dst_port
                 #print dst_port
-                ####################################
-                #Route TCP and UDP packets that return from server here
-                if dst_port in maps:
-                    ip_addr = maps[dst_port]
+                dst_src = Ipv4_addr(addr=ex_ip, port=dst_port)
+                if dst_src in maps:
+                    rsrc = maps[dst_src]
                 else:
-                    #print "Dropping msg as dst is not understood"
-                    return
+                    print("the flow does not exist!")
 
-                actions = [parser.OFPActionSetNwDst(self.ipv4_to_int(ip_addr.addr)), parser.OFPActionSetTpDst(ip_addr.port), parser.OFPActionOutput(out_port)]
-                ####################################            
-                out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port, actions=actions)
+                #Route TCP and UDP packets that return from server here
+                actions = [parser.OFPActionSetTpSrc(maps[dst_src].port) ,parser.OFPActionSetNwSrc(maps[dst_src].addr), parser.OFPActionOutput(out_port)]
+                out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
                 datapath.send_msg(out)
                 return
+
 
         else:
             #print "other"
             actions = [parser.OFPActionOutput(out_port)]
-            out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port, actions=actions)
-            datapath.send_msg(out)        
+            out = parser.OFPPacketOut(datapath=datapath, buffer_id=message.buffer_id, data=message.data, in_port=message.in_port,actions=actions)
+            datapath.send_msg(out)		
 
     def ipv4_to_str(self, integre):
         ip_list = [str((integre >> (24 - (n * 8)) & 255)) for n in range(4)]
